@@ -74,7 +74,21 @@ class Resource(models.MonitorableResource):
         if extra_vars:
             if hasattr(extra_vars, 'read'):
                 extra_vars = extra_vars.read()
-            data['extra_vars'] = extra_vars
+                # Try to load the extra_vars as a JSON string
+                try:
+                    ev_dict = json.loads(extra_vars)
+                except ValueError:
+                    # We could raise an exception here, but instead, let's just
+                    # allow business as usual to execute to avoid disrupting
+                    # the flow of anyone currently using this process.
+                    pass
+
+            # Update the extra_vars dict received from the job template 
+            # with the extra_vars provided in the CLI
+            ev_data_dict = json.loads(data['extra_vars'])
+            ev_data_dict.update(ev_dict)
+            data['extra_vars'] = json.dumps(ev_data_dict)
+
         elif data.pop('ask_variables_on_launch', False) and not no_input:
             initial = data['extra_vars']
             initial = '\n'.join((
