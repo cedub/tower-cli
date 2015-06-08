@@ -85,7 +85,12 @@ class Resource(models.MonitorableResource):
 
             # Update the extra_vars dict received from the job template 
             # with the extra_vars provided in the CLI
-            ev_data_dict = json.loads(data['extra_vars'])
+            # Handle the exception that occurs when no "extra_vars" have been
+            # specified for a job template
+            try:
+                ev_data_dict = json.loads(data['extra_vars'])
+            except ValueError:
+                ev_data_dict = {}
             ev_data_dict.update(ev_dict)
             data['extra_vars'] = json.dumps(ev_data_dict)
 
